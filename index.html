@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Три в ряд - Мобильная игра</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+        
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 10px;
+        }
+        
+        .score-container, .moves-container {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 10px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .score-label, .moves-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .score-value, .moves-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .game-board {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 5px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .cell {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cell.selected {
+            transform: scale(0.9);
+            box-shadow: 0 0 0 3px white;
+        }
+        
+        .cell.matched {
+            animation: matched 0.5s ease;
+        }
+        
+        @keyframes matched {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .gem {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .gem-1 { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); }
+        .gem-2 { background: linear-gradient(135deg, #4ecdc4, #88d8d0); }
+        .gem-3 { background: linear-gradient(135deg, #ffd166, #ffe5a3); }
+        .gem-4 { background: linear-gradient(135deg, #06d6a0, #4ce4b6); }
+        .gem-5 { background: linear-gradient(135deg, #118ab2, #4db8d6); }
+        .gem-6 { background: linear-gradient(135deg, #9d4edd, #b97de6); }
+        
+        .controls {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 0 10px;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .message.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .message-content {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 80%;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .message h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        
+        .message p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+            text-align: center;
+            padding: 0 15px;
+        }
+        
+        @media (max-height: 700px) {
+            .game-board {
+                max-width: 350px;
+            }
+            
+            .header, .controls {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="score-container">
+                <div class="score-label">ОЧКИ</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="moves-container">
+                <div class="moves-label">ХОДЫ</div>
+                <div class="moves-value" id="moves">30</div>
+            </div>
+        </div>
+        
+        <div class="game-board" id="board"></div>
+        
+        <div class="controls">
+            <button class="btn" id="hintBtn">Подсказка</button>
+            <button class="btn" id="restartBtn">Заново</button>
+        </div>
+        
+        <div class="instructions">
+            Соединяйте 3 и более одинаковых камня в ряд по горизонтали или вертикали
+        </div>
+    </div>
+    
+    <div class="message" id="message">
+        <div class="message-content">
+            <h2 id="messageTitle">Поздравляем!</h2>
+            <p id="messageText">Вы набрали 1000 очков!</p>
+            <button class="btn" id="closeMessage">OK</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Конфигурация игры
+            const config = {
+                boardSize: 8,
+                gemTypes: 6,
+                initialMoves: 30,
+                targetScore: 1000,
+                hintTimeout: 3000
+            };
+            
+            // Состояние игры
+            const state = {
+                score: 0,
+                moves: config.initialMoves,
+                board: [],
+                selectedGem: null,
+                isSwapping: false,
+                isProcessing: false,
+                gameOver: false
+            };
+            
+            // Элементы DOM
+            const boardElement = document.getElementById('board');
+            const scoreElement = document.getElementById('score');
+            const movesElement = document.getElementById('moves');
+            const hintBtn = document.getElementById('hintBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const messageElement = document.getElementById('message');
+            const messageTitle = document.getElementById('messageTitle');
+            const messageText = document.getElementById('messageText');
+            const closeMessage = document.getElementById('closeMessage');
+            
+            // Инициализация игры
+            function initGame() {
+                state.score = 0;
+                state.moves = config.initialMoves;
+                state.selectedGem = null;
+                state.isSwapping = false;
+                state.isProcessing = false;
+                state.gameOver = false;
+                
+                updateUI();
+                createBoard();
+                renderBoard();
+                
+                // Скрыть сообщение
+                messageElement.classList.remove('show');
+            }
+            
+            // Создание игрового поля
+            function createBoard() {
+                state.board = [];
+                
+                for (let row = 0; row < config.boardSize; row++) {
+                    state.board[row] = [];
+                    for (let col = 0; col < config.boardSize; col++) {
+                        // Создаем случайный камень, избегая совпадений при создании
+                        let gemType;
+                        do {
+                            gemType = Math.floor(Math.random() * config.gemTypes) + 1;
+                        } while (
+                            (row >= 2 && state.board[row-1][col] === gemType && state.board[row-2][col] === gemType) ||
+                            (col >= 2 && state.board[row][col-1] === gemType && state.board[row][col-2] === gemType)
+                        );
+                        
+                        state.board[row][col] = gemType;
+                    }
+                }
+            }
+            
+            // Отрисовка игрового поля
+            function renderBoard() {
+                boardElement.innerHTML = '';
+                
+                for (let row = 0; row < config.boardSize; row++) {
+                    for (let col = 0; col < config.boardSize; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        const gem = document.createElement('div');
+                        gem.className = `gem gem-${state.board[row][col]}`;
+                        
+                        cell.appendChild(gem);
+                        boardElement.appendChild(cell);
+                        
+                        // Обработка касаний для мобильных устройств
+                        cell.addEventListener('touchstart', handleGemTouch);
+                        cell.addEventListener('click', handleGemClick);
+                    }
+                }
+            }
+            
+            // Обработка касания камня
+            function handleGemTouch(e) {
+                e.preventDefault();
+                const cell = e.currentTarget;
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                
+                handleGemSelection(row, col);
+            }
+            
+            // Обработка клика по камню
+            function handleGemClick(e) {
+                const cell = e.currentTarget;
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                
+                handleGemSelection(row, col);
+            }
+            
+            // Выбор камня
+            function handleGemSelection(row, col) {
+                if (state.isProcessing || state.gameOver) return;
+                
+                // Если камень уже выбран
+                if (state.selectedGem) {
+                    const prevRow = state.selectedGem.row;
+                    const prevCol = state.selectedGem.col;
+                    
+                    // Если выбран тот же камень - снимаем выделение
+                    if (prevRow === row && prevCol === col) {
+                        clearSelection();
+                        return;
+                    }
+                    
+                    // Проверяем, являются ли камни соседями
+                    if (isAdjacent(prevRow, prevCol, row, col)) {
+                        // Меняем камни местами
+                        swapGems(prevRow, prevCol, row, col);
+                    } else {
+                        // Выбираем новый камень
+                        clearSelection();
+                        state.selectedGem = { row, col };
+                        highlightCell(row, col);
+                    }
+                } else {
+                    // Выбираем камень впервые
+                    state.selectedGem = { row, col };
+                    highlightCell(row, col);
+                }
+            }
+            
+            // Проверка, являются ли камни соседями
+            function isAdjacent(row1, col1, row2, col2) {
+                return (
+                    (Math.abs(row1 - row2) === 1 && col1 === col2) ||
+                    (Math.abs(col1 - col2) === 1 && row1 === row2)
+                );
+            }
+            
+            // Подсветка выбранной ячейки
+            function highlightCell(row, col) {
+                const cells = document.querySelectorAll('.cell');
+                cells.forEach(cell => {
+                    cell.classList.remove('selected');
+                });
+                
+                const selectedCell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                if (selectedCell) {
+                    selectedCell.classList.add('selected');
+                }
+            }
+            
+            // Снятие выделения
+            function clearSelection() {
+                state.selectedGem = null;
+                const cells = document.querySelectorAll('.cell');
+                cells.forEach(cell => {
+                    cell.classList.remove('selected');
+                });
+            }
+            
+            // Обмен камнями
+            function swapGems(row1, col1, row2, col2) {
+                state.isProcessing = true;
+                
+                // Меняем камни местами на доске
+                const temp = state.board[row1][col1];
+                state.board[row1][col1] = state.board[row2][col2];
+                state.board[row2][col2] = temp;
+                
+                // Обновляем отображение
+                renderBoard();
+                
+                // Проверяем, образовались ли комбинации
+                setTimeout(() => {
+                    const matches = findMatches();
+                    
+                    if (matches.length > 0) {
+                        // Если комбинации есть - обрабатываем их
+                        processMatches(matches);
+                        state.moves--;
+                        updateUI();
+                        
+                        // Проверяем условия победы/поражения
+                        checkGameStatus();
+                    } else {
+                        // Если комбинаций нет - возвращаем камни обратно
+                        const temp = state.board[row1][col1];
+                        state.board[row1][col1] = state.board[row2][col2];
+                        state.board[row2][col2] = temp;
+                        
+                        renderBoard();
+                        state.isProcessing = false;
+                    }
+                    
+                    clearSelection();
+                }, 300);
+            }
+            
+            // Поиск совпадений на доске
+            function findMatches() {
+                const matches = [];
+                
+                // Проверка горизонтальных совпадений
+                for (let row = 0; row < config.boardSize; row++) {
+                    for (let col = 0; col < config.boardSize - 2; col++) {
+                        const gemType = state.board[row][col];
+                        if (gemType === state.board[row][col+1] && gemType === state.board[row][col+2]) {
+                            // Найдено совпадение из 3 камней
+                            let matchLength = 3;
+                            
+                            // Проверяем, есть ли продолжение совпадения
+                            while (col + matchLength < config.boardSize && state.board[row][col+matchLength] === gemType) {
+                                matchLength++;
+                            }
+                            
+                            // Добавляем все камни из совпадения
+                            for (let i = 0; i < matchLength; i++) {
+                                matches.push({ row, col: col + i });
+                            }
+                            
+                            col += matchLength - 1;
+                        }
+                    }
+                }
+                
+                // Проверка вертикальных совпадений
+                for (let col = 0; col < config.boardSize; col++) {
+                    for (let row = 0; row < config.boardSize - 2; row++) {
+                        const gemType = state.board[row][col];
+                        if (gemType === state.board[row+1][col] && gemType === state.board[row+2][col]) {
+                            // Найдено совпадение из 3 камней
+                            let matchLength = 3;
+                            
+                            // Проверяем, есть ли продолжение совпадения
+                            while (row + matchLength < config.boardSize && state.board[row+matchLength][col] === gemType) {
+                                matchLength++;
+                            }
+                            
+                            // Добавляем все камни из совпадения
+                            for (let i = 0; i < matchLength; i++) {
+                                matches.push({ row: row + i, col });
+                            }
+                            
+                            row += matchLength - 1;
+                        }
+                    }
+                }
+                
+                return matches;
+            }
+            
+            // Обработка найденных совпадений
+            function processMatches(matches) {
+                // Удаляем дубликаты (камни, которые входят в несколько комбинаций)
+                const uniqueMatches = [];
+                const matchSet = new Set();
+                
+                matches.forEach(match => {
+                    const key = `${match.row},${match.col}`;
+                    if (!matchSet.has(key)) {
+                        matchSet.add(key);
+                        uniqueMatches.push(match);
+                    }
+                });
+                
+                // Подсвечиваем совпавшие камни
+                uniqueMatches.forEach(match => {
+                    const cell = document.querySelector(`.cell[data-row="${match.row}"][data-col="${match.col}"]`);
+                    if (cell) {
+                        cell.classList.add('matched');
+                    }
+                });
+                
+                // Начисляем очки
+                const points = uniqueMatches.length * 10;
+                state.score += points;
+                
+                // Удаляем совпавшие камни и создаем новые
+                setTimeout(() => {
+                    // Удаляем совпавшие камни
+                    uniqueMatches.forEach(match => {
+                        state.board[match.row][match.col] = 0;
+                    });
+                    
+                    // Сдвигаем камни вниз
+                    dropGems();
+                    
+                    // Заполняем пустые места новыми камнями
+                    fillEmptySpaces();
+                    
+                    // Проверяем новые совпадения
+                    setTimeout(() => {
+                        const newMatches = findMatches();
+                        if (newMatches.length > 0) {
+                            // Если есть новые совпадения - обрабатываем их
+                            processMatches(newMatches);
+                        } else {
+                            state.isProcessing = false;
+                        }
+                    }, 500);
+                }, 500);
+            }
+            
+            // Падение камней после удаления совпадений
+            function dropGems() {
+                for (let col = 0; col < config.boardSize; col++) {
+                    let emptySpaces = 0;
+                    
+                    // Проходим снизу вверх
+                    for (let row = config.boardSize - 1; row >= 0; row--) {
+                        if (state.board[row][col] === 0) {
+                            emptySpaces++;
+                        } else if (emptySpaces > 0) {
+                            // Перемещаем камень вниз
+                            state.board[row + emptySpaces][col] = state.board[row][col];
+                            state.board[row][col] = 0;
+                        }
+                    }
+                }
+            }
+            
+            // Заполнение пустых мест новыми камнями
+            function fillEmptySpaces() {
+                for (let row = 0; row < config.boardSize; row++) {
+                    for (let col = 0; col < config.boardSize; col++) {
+                        if (state.board[row][col] === 0) {
+                            state.board[row][col] = Math.floor(Math.random() * config.gemTypes) + 1;
+                        }
+                    }
+                }
+                
+                renderBoard();
+            }
+            
+            // Проверка статуса игры
+            function checkGameStatus() {
+                if (state.score >= config.targetScore) {
+                    // Победа
+                    state.gameOver = true;
+                    showMessage('Поздравляем!', `Вы набрали ${state.score} очков и выиграли!`);
+                } else if (state.moves <= 0) {
+                    // Поражение
+                    state.gameOver = true;
+                    showMessage('Игра окончена', `Вы не набрали достаточно очков. Попробуйте еще раз!`);
+                }
+            }
+            
+            // Показать сообщение
+            function showMessage(title, text) {
+                messageTitle.textContent = title;
+                messageText.textContent = text;
+                messageElement.classList.add('show');
+            }
+            
+            // Обновление интерфейса
+            function updateUI() {
+                scoreElement.textContent = state.score;
+                movesElement.textContent = state.moves;
+            }
+            
+            // Функция подсказки
+            function showHint() {
+                if (state.isProcessing || state.gameOver) return;
+                
+                // Находим возможный ход
+                for (let row = 0; row < config.boardSize; row++) {
+                    for (let col = 0; col < config.boardSize; col++) {
+                        // Проверяем соседние камни
+                        const directions = [
+                            { dr: 0, dc: 1 },  // Вправо
+                            { dr: 1, dc: 0 }   // Вниз
+                        ];
+                        
+                        for (const dir of directions) {
+                            const newRow = row + dir.dr;
+                            const newCol = col + dir.dc;
+                            
+                            if (newRow < config.boardSize && newCol < config.boardSize) {
+                                // Пробуем поменять местами
+                                const temp = state.board[row][col];
+                                state.board[row][col] = state.board[newRow][newCol];
+                                state.board[newRow][newCol] = temp;
+                                
+                                // Проверяем, есть ли совпадения
+                                const matches = findMatches();
+                                
+                                // Возвращаем на место
+                                state.board[newRow][newCol] = state.board[row][col];
+                                state.board[row][col] = temp;
+                                
+                                if (matches.length > 0) {
+                                    // Подсвечиваем возможный ход
+                                    const cell1 = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                                    const cell2 = document.querySelector(`.cell[data-row="${newRow}"][data-col="${newCol}"]`);
+                                    
+                                    if (cell1 && cell2) {
+                                        cell1.classList.add('selected');
+                                        cell2.classList.add('selected');
+                                        
+                                        // Убираем подсветку через несколько секунд
+                                        setTimeout(() => {
+                                            cell1.classList.remove('selected');
+                                            cell2.classList.remove('selected');
+                                        }, config.hintTimeout);
+                                    }
+                                    
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Обработчики событий
+            hintBtn.addEventListener('click', showHint);
+            restartBtn.addEventListener('click', initGame);
+            closeMessage.addEventListener('click', () => {
+                messageElement.classList.remove('show');
+                if (state.gameOver) {
+                    initGame();
+                }
+            });
+            
+            // Запуск игры
+            initGame();
+        });
+    </script>
+</body>
+</html>
