@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Три в ряд - Мобильная игра</title>
+    <title>Три в ряд - Улучшенная версия</title>
     <style>
         * {
             margin: 0;
@@ -20,13 +20,14 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
-            height: 100vh;
+            min-height: 100vh;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             touch-action: manipulation;
+            padding: 10px;
         }
         
         .game-container {
@@ -47,21 +48,23 @@
             padding: 0 10px;
         }
         
-        .score-container, .moves-container {
+        .score-container, .moves-container, .target-container {
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 10px 20px;
+            border-radius: 15px;
+            padding: 10px 15px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            min-width: 80px;
         }
         
-        .score-label, .moves-label {
-            font-size: 14px;
+        .score-label, .moves-label, .target-label {
+            font-size: 12px;
             opacity: 0.8;
+            margin-bottom: 5px;
         }
         
-        .score-value, .moves-value {
-            font-size: 24px;
+        .score-value, .moves-value, .target-value {
+            font-size: 20px;
             font-weight: bold;
         }
         
@@ -77,6 +80,8 @@
             grid-template-rows: repeat(8, 1fr);
             gap: 5px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+            position: relative;
         }
         
         .cell {
@@ -88,11 +93,22 @@
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
         
         .cell.selected {
             transform: scale(0.9);
             box-shadow: 0 0 0 3px white;
+        }
+        
+        .cell.highlighted {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
         }
         
         .cell.matched {
@@ -105,11 +121,34 @@
             100% { transform: scale(1); }
         }
         
+        .cell.swapping {
+            animation: swap 0.3s ease;
+        }
+        
+        @keyframes swap {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
         .gem {
             width: 80%;
             height: 80%;
             border-radius: 50%;
             box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .gem::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 20%;
+            height: 20%;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            filter: blur(2px);
         }
         
         .gem-1 { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); }
@@ -123,7 +162,7 @@
             width: 100%;
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            margin-top: 10px;
             padding: 0 10px;
         }
         
@@ -132,17 +171,35 @@
             border: none;
             border-radius: 50px;
             color: white;
-            padding: 12px 25px;
+            padding: 12px 20px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
         }
         
         .btn:active {
             transform: scale(0.95);
             background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        
+        .instructions {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+            text-align: center;
+            padding: 0 15px;
+            line-height: 1.4;
         }
         
         .message {
@@ -186,12 +243,21 @@
             margin-bottom: 20px;
         }
         
-        .instructions {
-            margin-top: 15px;
-            font-size: 14px;
-            opacity: 0.8;
+        .drag-hint {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            width: 100%;
             text-align: center;
-            padding: 0 15px;
+            font-size: 14px;
+            opacity: 0.7;
+            animation: fadeInOut 3s infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.3; }
         }
         
         @media (max-height: 700px) {
@@ -202,8 +268,34 @@
             .header, .controls {
                 margin-bottom: 10px;
             }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+                min-width: 100px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .header {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="game-container">
@@ -216,17 +308,27 @@
                 <div class="moves-label">ХОДЫ</div>
                 <div class="moves-value" id="moves">30</div>
             </div>
+            <div class="target-container">
+                <div class="target-label">ЦЕЛЬ</div>
+                <div class="target-value" id="target">1000</div>
+            </div>
         </div>
         
         <div class="game-board" id="board"></div>
+        <div class="drag-hint">Перетаскивайте камни для составления комбинаций</div>
         
         <div class="controls">
-            <button class="btn" id="hintBtn">Подсказка</button>
-            <button class="btn" id="restartBtn">Заново</button>
+            <button class="btn" id="hintBtn">
+                <i class="fas fa-lightbulb"></i> Подсказка
+            </button>
+            <button class="btn" id="restartBtn">
+                <i class="fas fa-redo"></i> Заново
+            </button>
         </div>
         
         <div class="instructions">
-            Соединяйте 3 и более одинаковых камня в ряд по горизонтали или вертикали
+            Соединяйте 3 и более одинаковых камня в ряд по горизонтали или вертикали. 
+            Для этого нажмите на камень и перетащите его к соседнему.
         </div>
     </div>
     
@@ -234,7 +336,9 @@
         <div class="message-content">
             <h2 id="messageTitle">Поздравляем!</h2>
             <p id="messageText">Вы набрали 1000 очков!</p>
-            <button class="btn" id="closeMessage">OK</button>
+            <button class="btn" id="closeMessage">
+                <i class="fas fa-play"></i> Играть снова
+            </button>
         </div>
     </div>
 
@@ -257,13 +361,15 @@
                 selectedGem: null,
                 isSwapping: false,
                 isProcessing: false,
-                gameOver: false
+                gameOver: false,
+                dragStart: null
             };
             
             // Элементы DOM
             const boardElement = document.getElementById('board');
             const scoreElement = document.getElementById('score');
             const movesElement = document.getElementById('moves');
+            const targetElement = document.getElementById('target');
             const hintBtn = document.getElementById('hintBtn');
             const restartBtn = document.getElementById('restartBtn');
             const messageElement = document.getElementById('message');
@@ -279,6 +385,7 @@
                 state.isSwapping = false;
                 state.isProcessing = false;
                 state.gameOver = false;
+                state.dragStart = null;
                 
                 updateUI();
                 createBoard();
@@ -326,61 +433,67 @@
                         cell.appendChild(gem);
                         boardElement.appendChild(cell);
                         
-                        // Обработка касаний для мобильных устройств
-                        cell.addEventListener('touchstart', handleGemTouch);
-                        cell.addEventListener('click', handleGemClick);
+                        // Добавляем обработчики событий для перетаскивания
+                        cell.addEventListener('mousedown', handleDragStart);
+                        cell.addEventListener('touchstart', handleDragStart);
+                        
+                        cell.addEventListener('mouseup', handleDragEnd);
+                        cell.addEventListener('touchend', handleDragEnd);
+                        
+                        cell.addEventListener('mouseover', handleDragOver);
                     }
                 }
             }
             
-            // Обработка касания камня
-            function handleGemTouch(e) {
+            // Начало перетаскивания
+            function handleDragStart(e) {
+                if (state.isProcessing || state.gameOver) return;
+                
                 e.preventDefault();
                 const cell = e.currentTarget;
                 const row = parseInt(cell.dataset.row);
                 const col = parseInt(cell.dataset.col);
                 
-                handleGemSelection(row, col);
+                state.dragStart = { row, col };
+                cell.classList.add('selected');
             }
             
-            // Обработка клика по камню
-            function handleGemClick(e) {
+            // Конец перетаскивания
+            function handleDragEnd(e) {
+                if (!state.dragStart || state.isProcessing || state.gameOver) return;
+                
+                e.preventDefault();
                 const cell = e.currentTarget;
                 const row = parseInt(cell.dataset.row);
                 const col = parseInt(cell.dataset.col);
                 
-                handleGemSelection(row, col);
+                // Если перетащили на другой камень
+                if (state.dragStart.row !== row || state.dragStart.col !== col) {
+                    // Проверяем, являются ли камни соседями
+                    if (isAdjacent(state.dragStart.row, state.dragStart.col, row, col)) {
+                        // Меняем камни местами
+                        swapGems(state.dragStart.row, state.dragStart.col, row, col);
+                    }
+                }
+                
+                // Снимаем выделение
+                clearSelection();
+                state.dragStart = null;
             }
             
-            // Выбор камня
-            function handleGemSelection(row, col) {
-                if (state.isProcessing || state.gameOver) return;
+            // Перетаскивание над элементом
+            function handleDragOver(e) {
+                if (!state.dragStart || state.isProcessing || state.gameOver) return;
                 
-                // Если камень уже выбран
-                if (state.selectedGem) {
-                    const prevRow = state.selectedGem.row;
-                    const prevCol = state.selectedGem.col;
-                    
-                    // Если выбран тот же камень - снимаем выделение
-                    if (prevRow === row && prevCol === col) {
-                        clearSelection();
-                        return;
-                    }
-                    
-                    // Проверяем, являются ли камни соседями
-                    if (isAdjacent(prevRow, prevCol, row, col)) {
-                        // Меняем камни местами
-                        swapGems(prevRow, prevCol, row, col);
-                    } else {
-                        // Выбираем новый камень
-                        clearSelection();
-                        state.selectedGem = { row, col };
-                        highlightCell(row, col);
-                    }
-                } else {
-                    // Выбираем камень впервые
-                    state.selectedGem = { row, col };
-                    highlightCell(row, col);
+                e.preventDefault();
+                const cell = e.currentTarget;
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                
+                // Подсвечиваем ячейку, если она соседняя
+                if (isAdjacent(state.dragStart.row, state.dragStart.col, row, col)) {
+                    clearSelection();
+                    cell.classList.add('selected');
                 }
             }
             
@@ -392,22 +505,8 @@
                 );
             }
             
-            // Подсветка выбранной ячейки
-            function highlightCell(row, col) {
-                const cells = document.querySelectorAll('.cell');
-                cells.forEach(cell => {
-                    cell.classList.remove('selected');
-                });
-                
-                const selectedCell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                if (selectedCell) {
-                    selectedCell.classList.add('selected');
-                }
-            }
-            
             // Снятие выделения
             function clearSelection() {
-                state.selectedGem = null;
                 const cells = document.querySelectorAll('.cell');
                 cells.forEach(cell => {
                     cell.classList.remove('selected');
@@ -418,16 +517,25 @@
             function swapGems(row1, col1, row2, col2) {
                 state.isProcessing = true;
                 
+                // Добавляем анимацию обмена
+                const cell1 = document.querySelector(`.cell[data-row="${row1}"][data-col="${col1}"]`);
+                const cell2 = document.querySelector(`.cell[data-row="${row2}"][data-col="${col2}"]`);
+                
+                if (cell1 && cell2) {
+                    cell1.classList.add('swapping');
+                    cell2.classList.add('swapping');
+                }
+                
                 // Меняем камни местами на доске
                 const temp = state.board[row1][col1];
                 state.board[row1][col1] = state.board[row2][col2];
                 state.board[row2][col2] = temp;
                 
                 // Обновляем отображение
-                renderBoard();
-                
-                // Проверяем, образовались ли комбинации
                 setTimeout(() => {
+                    renderBoard();
+                    
+                    // Проверяем, образовались ли комбинации
                     const matches = findMatches();
                     
                     if (matches.length > 0) {
@@ -447,8 +555,6 @@
                         renderBoard();
                         state.isProcessing = false;
                     }
-                    
-                    clearSelection();
                 }, 300);
             }
             
@@ -460,7 +566,7 @@
                 for (let row = 0; row < config.boardSize; row++) {
                     for (let col = 0; col < config.boardSize - 2; col++) {
                         const gemType = state.board[row][col];
-                        if (gemType === state.board[row][col+1] && gemType === state.board[row][col+2]) {
+                        if (gemType !== 0 && gemType === state.board[row][col+1] && gemType === state.board[row][col+2]) {
                             // Найдено совпадение из 3 камней
                             let matchLength = 3;
                             
@@ -483,7 +589,7 @@
                 for (let col = 0; col < config.boardSize; col++) {
                     for (let row = 0; row < config.boardSize - 2; row++) {
                         const gemType = state.board[row][col];
-                        if (gemType === state.board[row+1][col] && gemType === state.board[row+2][col]) {
+                        if (gemType !== 0 && gemType === state.board[row+1][col] && gemType === state.board[row+2][col]) {
                             // Найдено совпадение из 3 камней
                             let matchLength = 3;
                             
@@ -612,6 +718,7 @@
             function updateUI() {
                 scoreElement.textContent = state.score;
                 movesElement.textContent = state.moves;
+                targetElement.textContent = config.targetScore;
             }
             
             // Функция подсказки
@@ -650,13 +757,13 @@
                                     const cell2 = document.querySelector(`.cell[data-row="${newRow}"][data-col="${newCol}"]`);
                                     
                                     if (cell1 && cell2) {
-                                        cell1.classList.add('selected');
-                                        cell2.classList.add('selected');
+                                        cell1.classList.add('highlighted');
+                                        cell2.classList.add('highlighted');
                                         
                                         // Убираем подсветку через несколько секунд
                                         setTimeout(() => {
-                                            cell1.classList.remove('selected');
-                                            cell2.classList.remove('selected');
+                                            cell1.classList.remove('highlighted');
+                                            cell2.classList.remove('highlighted');
                                         }, config.hintTimeout);
                                     }
                                     
@@ -673,9 +780,7 @@
             restartBtn.addEventListener('click', initGame);
             closeMessage.addEventListener('click', () => {
                 messageElement.classList.remove('show');
-                if (state.gameOver) {
-                    initGame();
-                }
+                initGame();
             });
             
             // Запуск игры
