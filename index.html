@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Три в ряд - Улучшенная версия</title>
+    <title>Три в ряд - Управление свайпами</title>
     <style>
         * {
             margin: 0;
@@ -14,6 +14,7 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            touch-action: none;
         }
         
         body {
@@ -26,7 +27,6 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            touch-action: manipulation;
             padding: 10px;
         }
         
@@ -82,6 +82,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             margin-bottom: 15px;
             position: relative;
+            touch-action: none;
         }
         
         .cell {
@@ -93,7 +94,6 @@
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
-            cursor: pointer;
         }
         
         .cell.selected {
@@ -181,6 +181,7 @@
             align-items: center;
             justify-content: center;
             min-width: 120px;
+            touch-action: manipulation;
         }
         
         .btn:active {
@@ -200,6 +201,23 @@
             text-align: center;
             padding: 0 15px;
             line-height: 1.4;
+        }
+        
+        .swipe-hint {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.7;
+            animation: fadeInOut 3s infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.3; }
         }
         
         .message {
@@ -241,23 +259,6 @@
         .message p {
             font-size: 18px;
             margin-bottom: 20px;
-        }
-        
-        .drag-hint {
-            position: absolute;
-            bottom: -30px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 14px;
-            opacity: 0.7;
-            animation: fadeInOut 3s infinite;
-        }
-        
-        @keyframes fadeInOut {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-            100% { opacity: 0.3; }
         }
         
         @media (max-height: 700px) {
@@ -315,7 +316,7 @@
         </div>
         
         <div class="game-board" id="board"></div>
-        <div class="drag-hint">Перетаскивайте камни для составления комбинаций</div>
+        <div class="swipe-hint">Свайпайте камни для составления комбинаций</div>
         
         <div class="controls">
             <button class="btn" id="hintBtn">
@@ -327,8 +328,8 @@
         </div>
         
         <div class="instructions">
-            Соединяйте 3 и более одинаковых камня в ряд по горизонтали или вертикали. 
-            Для этого нажмите на камень и перетащите его к соседнему.
+            Соединяйте 3 и более одинаковых камня в ряд. 
+            Для этого свайпайте камень в направлении соседнего камня.
         </div>
     </div>
     
@@ -350,7 +351,8 @@
                 gemTypes: 6,
                 initialMoves: 30,
                 targetScore: 1000,
-                hintTimeout: 3000
+                hintTimeout: 3000,
+                swipeThreshold: 30 // минимальное расстояние свайпа в пикселях
             };
             
             // Состояние игры
@@ -358,11 +360,11 @@
                 score: 0,
                 moves: config.initialMoves,
                 board: [],
-                selectedGem: null,
                 isSwapping: false,
                 isProcessing: false,
                 gameOver: false,
-                dragStart: null
+                touchStart: null,
+                currentCell: null
             };
             
             // Элементы DOM
@@ -381,15 +383,16 @@
             function initGame() {
                 state.score = 0;
                 state.moves = config.initialMoves;
-                state.selectedGem = null;
                 state.isSwapping = false;
                 state.isProcessing = false;
                 state.gameOver = false;
-                state.dragStart = null;
+                state.touchStart = null;
+                state.currentCell = null;
                 
                 updateUI();
                 createBoard();
                 renderBoard();
+                setupSwipeHandlers();
                 
                 // Скрыть сообщение
                 messageElement.classList.remove('show');
@@ -432,85 +435,157 @@
                         
                         cell.appendChild(gem);
                         boardElement.appendChild(cell);
-                        
-                        // Добавляем обработчики событий для перетаскивания
-                        cell.addEventListener('mousedown', handleDragStart);
-                        cell.addEventListener('touchstart', handleDragStart);
-                        
-                        cell.addEventListener('mouseup', handleDragEnd);
-                        cell.addEventListener('touchend', handleDragEnd);
-                        
-                        cell.addEventListener('mouseover', handleDragOver);
                     }
                 }
             }
             
-            // Начало перетаскивания
-            function handleDragStart(e) {
-                if (state.isProcessing || state.gameOver) return;
+            // Настройка обработчиков свайпов
+            function setupSwipeHandlers() {
+                let touchStartX, touchStartY;
+                let currentCell = null;
                 
-                e.preventDefault();
-                const cell = e.currentTarget;
-                const row = parseInt(cell.dataset.row);
-                const col = parseInt(cell.dataset.col);
-                
-                state.dragStart = { row, col };
-                cell.classList.add('selected');
-            }
-            
-            // Конец перетаскивания
-            function handleDragEnd(e) {
-                if (!state.dragStart || state.isProcessing || state.gameOver) return;
-                
-                e.preventDefault();
-                const cell = e.currentTarget;
-                const row = parseInt(cell.dataset.row);
-                const col = parseInt(cell.dataset.col);
-                
-                // Если перетащили на другой камень
-                if (state.dragStart.row !== row || state.dragStart.col !== col) {
-                    // Проверяем, являются ли камни соседями
-                    if (isAdjacent(state.dragStart.row, state.dragStart.col, row, col)) {
-                        // Меняем камни местами
-                        swapGems(state.dragStart.row, state.dragStart.col, row, col);
+                // Обработчик начала касания
+                function handleTouchStart(e) {
+                    if (state.isProcessing || state.gameOver) return;
+                    
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    
+                    // Находим ячейку, которой касаются
+                    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (element && element.classList.contains('cell')) {
+                        currentCell = element;
+                        currentCell.classList.add('selected');
                     }
+                    
+                    e.preventDefault();
                 }
                 
-                // Снимаем выделение
-                clearSelection();
-                state.dragStart = null;
-            }
-            
-            // Перетаскивание над элементом
-            function handleDragOver(e) {
-                if (!state.dragStart || state.isProcessing || state.gameOver) return;
-                
-                e.preventDefault();
-                const cell = e.currentTarget;
-                const row = parseInt(cell.dataset.row);
-                const col = parseInt(cell.dataset.col);
-                
-                // Подсвечиваем ячейку, если она соседняя
-                if (isAdjacent(state.dragStart.row, state.dragStart.col, row, col)) {
-                    clearSelection();
-                    cell.classList.add('selected');
+                // Обработчик движения касания
+                function handleTouchMove(e) {
+                    if (!currentCell || state.isProcessing || state.gameOver) return;
+                    
+                    const touch = e.touches[0];
+                    const deltaX = touch.clientX - touchStartX;
+                    const deltaY = touch.clientY - touchStartY;
+                    
+                    // Определяем направление свайпа
+                    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > config.swipeThreshold) {
+                        // Горизонтальный свайп
+                        const direction = deltaX > 0 ? 'right' : 'left';
+                        processSwipe(currentCell, direction);
+                        currentCell = null;
+                    } else if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > config.swipeThreshold) {
+                        // Вертикальный свайп
+                        const direction = deltaY > 0 ? 'down' : 'up';
+                        processSwipe(currentCell, direction);
+                        currentCell = null;
+                    }
+                    
+                    e.preventDefault();
                 }
-            }
-            
-            // Проверка, являются ли камни соседями
-            function isAdjacent(row1, col1, row2, col2) {
-                return (
-                    (Math.abs(row1 - row2) === 1 && col1 === col2) ||
-                    (Math.abs(col1 - col2) === 1 && row1 === row2)
-                );
-            }
-            
-            // Снятие выделения
-            function clearSelection() {
-                const cells = document.querySelectorAll('.cell');
-                cells.forEach(cell => {
-                    cell.classList.remove('selected');
+                
+                // Обработчик окончания касания
+                function handleTouchEnd(e) {
+                    if (currentCell) {
+                        currentCell.classList.remove('selected');
+                        currentCell = null;
+                    }
+                    e.preventDefault();
+                }
+                
+                // Добавляем обработчики событий
+                boardElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+                boardElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+                boardElement.addEventListener('touchend', handleTouchEnd, { passive: false });
+                
+                // Также добавляем поддержку мыши для тестирования
+                let mouseDown = false;
+                let mouseStartX, mouseStartY;
+                
+                boardElement.addEventListener('mousedown', (e) => {
+                    if (state.isProcessing || state.gameOver) return;
+                    
+                    mouseDown = true;
+                    mouseStartX = e.clientX;
+                    mouseStartY = e.clientY;
+                    
+                    currentCell = e.target.closest('.cell');
+                    if (currentCell) {
+                        currentCell.classList.add('selected');
+                    }
                 });
+                
+                boardElement.addEventListener('mousemove', (e) => {
+                    if (!mouseDown || !currentCell || state.isProcessing || state.gameOver) return;
+                    
+                    const deltaX = e.clientX - mouseStartX;
+                    const deltaY = e.clientY - mouseStartY;
+                    
+                    if (Math.abs(deltaX) > config.swipeThreshold || Math.abs(deltaY) > config.swipeThreshold) {
+                        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                            const direction = deltaX > 0 ? 'right' : 'left';
+                            processSwipe(currentCell, direction);
+                        } else {
+                            const direction = deltaY > 0 ? 'down' : 'up';
+                            processSwipe(currentCell, direction);
+                        }
+                        mouseDown = false;
+                        currentCell = null;
+                    }
+                });
+                
+                boardElement.addEventListener('mouseup', () => {
+                    if (currentCell) {
+                        currentCell.classList.remove('selected');
+                    }
+                    mouseDown = false;
+                    currentCell = null;
+                });
+                
+                boardElement.addEventListener('mouseleave', () => {
+                    if (currentCell) {
+                        currentCell.classList.remove('selected');
+                    }
+                    mouseDown = false;
+                    currentCell = null;
+                });
+            }
+            
+            // Обработка свайпа
+            function processSwipe(cell, direction) {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                
+                let targetRow = row;
+                let targetCol = col;
+                
+                // Определяем целевую ячейку на основе направления свайпа
+                switch (direction) {
+                    case 'up':
+                        targetRow = row - 1;
+                        break;
+                    case 'down':
+                        targetRow = row + 1;
+                        break;
+                    case 'left':
+                        targetCol = col - 1;
+                        break;
+                    case 'right':
+                        targetCol = col + 1;
+                        break;
+                }
+                
+                // Проверяем, что целевая ячейка существует
+                if (targetRow >= 0 && targetRow < config.boardSize && 
+                    targetCol >= 0 && targetCol < config.boardSize) {
+                    // Меняем камни местами
+                    swapGems(row, col, targetRow, targetCol);
+                } else {
+                    // Если свайп за пределы поля - просто снимаем выделение
+                    cell.classList.remove('selected');
+                }
             }
             
             // Обмен камнями
@@ -534,6 +609,7 @@
                 // Обновляем отображение
                 setTimeout(() => {
                     renderBoard();
+                    setupSwipeHandlers();
                     
                     // Проверяем, образовались ли комбинации
                     const matches = findMatches();
@@ -553,6 +629,7 @@
                         state.board[row2][col2] = temp;
                         
                         renderBoard();
+                        setupSwipeHandlers();
                         state.isProcessing = false;
                     }
                 }, 300);
@@ -658,6 +735,8 @@
                             processMatches(newMatches);
                         } else {
                             state.isProcessing = false;
+                            renderBoard();
+                            setupSwipeHandlers();
                         }
                     }, 500);
                 }, 500);
@@ -690,8 +769,6 @@
                         }
                     }
                 }
-                
-                renderBoard();
             }
             
             // Проверка статуса игры
