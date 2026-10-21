@@ -1,483 +1,55 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3 в ряд - FACEIT стиль</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .header {
-            margin-bottom: 20px;
-        }
-
-        .logo {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #ff5500;
-            text-shadow: 0 0 10px rgba(255, 85, 0, 0.5);
-            margin-bottom: 10px;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-gap: 5px;
-            margin: 0 auto 20px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .cell {
-            width: 60px;
-            height: 60px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            user-select: none;
-        }
-
-        .cell.selected {
-            box-shadow: 0 0 0 3px #ff5500;
-        }
-
-        .cell.swapping {
-            transform: scale(0.9);
-        }
-
-        .gem-1 { background: linear-gradient(135deg, #ff5500, #ff8c00); }
-        .gem-2 { background: linear-gradient(135deg, #00a8ff, #0097e6); }
-        .gem-3 { background: linear-gradient(135deg, #9c88ff, #8c7ae6); }
-        .gem-4 { background: linear-gradient(135deg, #4cd137, #44bd32); }
-        .gem-5 { background: linear-gradient(135deg, #e84118, #c23616); }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        button {
-            background: #ff5500;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background: #ff7733;
-        }
-
-        .message {
-            margin-top: 20px;
-            padding: 10px;
-            background: rgba(255, 85, 0, 0.2);
-            border-radius: 4px;
-            display: none;
-        }
-
-        @media (max-width: 500px) {
-            .cell {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#09090d">
+<title>ReNights World — ZXC Avatars</title>
+<style>
+:root{--bg:#09090d;--panel:#111118;--line:#282433;--purple:#9b5cff;--acid:#c8ff00;--muted:#a7a2b4;--white:#f7f5ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--white);font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.12;background-image:linear-gradient(rgba(155,92,255,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(155,92,255,.13) 1px,transparent 1px);background-size:36px 36px;mask-image:linear-gradient(to bottom,black,transparent 80%);z-index:-1}
+.wrap{width:min(1060px,calc(100% - 36px));margin:auto}.top{display:flex;justify-content:space-between;align-items:center;padding:24px 0;border-bottom:1px solid var(--line);gap:15px}.logo{font-weight:900;letter-spacing:1.5px;font-size:15px}.logo span{color:var(--acid)}.status{font-size:11px;color:var(--acid);letter-spacing:2px}
+.hero{padding:82px 0 65px;position:relative}.tag{color:var(--acid);font-size:11px;letter-spacing:4px;font-weight:800}.hero h1{font-size:clamp(44px,9vw,92px);line-height:.9;letter-spacing:-5px;margin:20px 0 24px;font-weight:1000;text-transform:uppercase}.hero h1 span{color:var(--purple);text-shadow:0 0 35px #9b5cff42}.intro{color:var(--muted);max-width:490px;line-height:1.7;font-size:15px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 19px;text-decoration:none;font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--purple);color:var(--white);transition:.2s}.btn.primary{background:var(--acid);color:#09090d;border-color:var(--acid)}.btn:hover{transform:translateY(-3px);box-shadow:0 8px 30px #9b5cff25}.hero-mark{position:absolute;right:2%;top:70px;font-size:clamp(100px,22vw,230px);font-weight:1000;color:#171320;z-index:-1;line-height:1;transform:rotate(-8deg);user-select:none}
+section{padding:28px 0 56px}.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:20px;gap:16px}.section-head h2{font-size:25px;letter-spacing:-1px;margin:0;text-transform:uppercase}.section-head p{margin:0;color:var(--muted);font-size:11px;letter-spacing:1px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:linear-gradient(145deg,#15131d,#0e0e14);border:1px solid var(--line);padding:22px;min-height:210px;position:relative;overflow:hidden}.card:after{content:"";position:absolute;width:90px;height:90px;border:1px solid #9b5cff30;right:-35px;top:-35px;transform:rotate(45deg)}.num{font-size:11px;color:var(--acid);letter-spacing:2px}.card h3{font-size:19px;margin:20px 0 10px;text-transform:uppercase}.card p{font-size:13px;color:var(--muted);line-height:1.6;min-height:40px}.price{font-size:24px;font-weight:900;margin-top:18px}.price small{font-size:10px;color:var(--muted);font-weight:500;letter-spacing:1px}.portfolio{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}.portfolio-box{border:1px solid var(--line);background:var(--panel);padding:26px;min-height:170px;display:flex;flex-direction:column;justify-content:space-between}.portfolio-box strong{font-size:21px;text-transform:uppercase}.portfolio-box p{color:var(--muted);font-size:13px;line-height:1.6}.portfolio-box .symbol{font-size:38px;color:var(--purple);font-weight:1000}.contact{border:1px solid #46345f;background:linear-gradient(110deg,#171020,#101016);padding:30px;display:flex;justify-content:space-between;align-items:center;gap:20px}.contact h2{font-size:27px;text-transform:uppercase;margin:0 0 8px}.contact p{color:var(--muted);margin:0;font-size:13px}.contact .btn{white-space:nowrap}.footer{border-top:1px solid var(--line);padding:22px 0 28px;display:flex;justify-content:space-between;color:#777182;font-size:10px;letter-spacing:1px;gap:12px}
+@media(max-width:700px){.hero{padding:60px 0 48px}.hero h1{letter-spacing:-2.5px}.hero-mark{top:100px;right:0;opacity:.7}.grid{grid-template-columns:1fr}.card{min-height:0}.card p{min-height:0}.portfolio{grid-template-columns:1fr}.contact{align-items:flex-start;flex-direction:column}.section-head{align-items:flex-start;flex-direction:column}.footer{flex-direction:column}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">FACEIT MATCH3</div>
-            <p>Свайпайте фигуры, чтобы собрать 3 или более в ряд</p>
-        </div>
-        
-        <div class="stats">
-            <div>Очки: <span id="score">0</span></div>
-            <div>Ходы: <span id="moves">20</span></div>
-        </div>
-        
-        <div class="game-board" id="board"></div>
-        
-        <div class="controls">
-            <button id="restart">Новая игра</button>
-        </div>
-        
-        <div class="message" id="message"></div>
+<header class="wrap top">
+  <div class="logo">RENIGHTS <span>WORLD</span></div>
+  <div class="status">● ReNightsWorld</div>
+</header>
+<main>
+  <div class="wrap hero">
+    <div class="hero-mark">ZXC</div>
+    <div class="tag">CUSTOM AVATARS / 2026</div>
+    <h1>ТВОЙ СТИЛЬ.<br><span>ТВОЙ ZXC.</span></h1>
+    <p class="intro">Аватарки для игр и соцсетей. Тёмная эстетика — под твой ник и твой вайб.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://t.me/ReNightsWorld_bot target="_blank" rel="noopener">Заказать в Telegram ↗</a>
+      <a class="btn" href="#price">Смотреть прайс ↓</a>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const board = document.getElementById('board');
-            const scoreElement = document.getElementById('score');
-            const movesElement = document.getElementById('moves');
-            const restartButton = document.getElementById('restart');
-            const messageElement = document.getElementById('message');
-            
-            const BOARD_SIZE = 5;
-            const GEM_TYPES = 5;
-            let score = 0;
-            let moves = 20;
-            let selectedCell = null;
-            let isSwapping = false;
-            let boardState = [];
-            
-            // Инициализация игры
-            function initGame() {
-                score = 0;
-                moves = 20;
-                selectedCell = null;
-                isSwapping = false;
-                boardState = [];
-                
-                scoreElement.textContent = score;
-                movesElement.textContent = moves;
-                messageElement.style.display = 'none';
-                
-                // Создание игрового поля
-                board.innerHTML = '';
-                for (let row = 0; row < BOARD_SIZE; row++) {
-                    boardState[row] = [];
-                    for (let col = 0; col < BOARD_SIZE; col++) {
-                        const gemType = Math.floor(Math.random() * GEM_TYPES) + 1;
-                        boardState[row][col] = gemType;
-                        
-                        const cell = document.createElement('div');
-                        cell.className = `cell gem-${gemType}`;
-                        cell.dataset.row = row;
-                        cell.dataset.col = col;
-                        
-                        // Добавляем обработчики свайпов
-                        cell.addEventListener('touchstart', handleTouchStart, false);
-                        cell.addEventListener('touchmove', handleTouchMove, false);
-                        cell.addEventListener('touchend', handleTouchEnd, false);
-                        
-                        // Добавляем обработчики кликов для десктопной версии
-                        cell.addEventListener('mousedown', handleMouseDown);
-                        
-                        board.appendChild(cell);
-                    }
-                }
-                
-                // Проверяем, есть ли сразу совпадения
-                setTimeout(checkMatches, 100);
-            }
-            
-            // Обработчики свайпов для мобильных устройств
-            let xDown = null;
-            let yDown = null;
-            
-            function handleTouchStart(evt) {
-                if (isSwapping) return;
-                
-                const firstTouch = evt.touches[0];
-                xDown = firstTouch.clientX;
-                yDown = firstTouch.clientY;
-                
-                // Выделяем ячейку
-                selectCell(this);
-            }
-            
-            function handleTouchMove(evt) {
-                if (!xDown || !yDown || isSwapping) return;
-                
-                const xUp = evt.touches[0].clientX;
-                const yUp = evt.touches[0].clientY;
-                
-                const xDiff = xDown - xUp;
-                const yDiff = yDown - yUp;
-                
-                // Определяем направление свайпа
-                if (Math.abs(xDiff) > Math.abs(yDiff)) {
-                    if (xDiff > 0) {
-                        // Свайп влево
-                        swapWithNeighbor(selectedCell, 0, -1);
-                    } else {
-                        // Свайп вправо
-                        swapWithNeighbor(selectedCell, 0, 1);
-                    }
-                } else {
-                    if (yDiff > 0) {
-                        // Свайп вверх
-                        swapWithNeighbor(selectedCell, -1, 0);
-                    } else {
-                        // Свайп вниз
-                        swapWithNeighbor(selectedCell, 1, 0);
-                    }
-                }
-                
-                // Сбрасываем значения
-                xDown = null;
-                yDown = null;
-            }
-            
-            function handleTouchEnd() {
-                // Сбрасываем значения
-                xDown = null;
-                yDown = null;
-            }
-            
-            // Обработчики для десктопной версии
-            function handleMouseDown() {
-                if (isSwapping) return;
-                selectCell(this);
-            }
-            
-            // Обработка клавиш для десктопной версии
-            document.addEventListener('keydown', (e) => {
-                if (!selectedCell || isSwapping) return;
-                
-                const row = parseInt(selectedCell.dataset.row);
-                const col = parseInt(selectedCell.dataset.col);
-                
-                switch(e.key) {
-                    case 'ArrowUp':
-                        e.preventDefault();
-                        swapWithNeighbor(selectedCell, -1, 0);
-                        break;
-                    case 'ArrowDown':
-                        e.preventDefault();
-                        swapWithNeighbor(selectedCell, 1, 0);
-                        break;
-                    case 'ArrowLeft':
-                        e.preventDefault();
-                        swapWithNeighbor(selectedCell, 0, -1);
-                        break;
-                    case 'ArrowRight':
-                        e.preventDefault();
-                        swapWithNeighbor(selectedCell, 0, 1);
-                        break;
-                }
-            });
-            
-            // Выбор ячейки
-            function selectCell(cell) {
-                // Снимаем выделение с предыдущей ячейки
-                if (selectedCell) {
-                    selectedCell.classList.remove('selected');
-                }
-                
-                // Выделяем новую ячейку
-                selectedCell = cell;
-                selectedCell.classList.add('selected');
-            }
-            
-            // Обмен ячейками с соседом
-            function swapWithNeighbor(cell, rowOffset, colOffset) {
-                if (!cell) return;
-                
-                const row = parseInt(cell.dataset.row);
-                const col = parseInt(cell.dataset.col);
-                
-                const newRow = row + rowOffset;
-                const newCol = col + colOffset;
-                
-                // Проверяем, что новые координаты в пределах поля
-                if (newRow < 0 || newRow >= BOARD_SIZE || newCol < 0 || newCol >= BOARD_SIZE) return;
-                
-                // Находим соседнюю ячейку
-                const neighbor = document.querySelector(`.cell[data-row="${newRow}"][data-col="${newCol}"]`);
-                
-                if (!neighbor) return;
-                
-                // Меняем фигуры местами
-                swapCells(cell, neighbor);
-                
-                // Уменьшаем количество ходов
-                moves--;
-                movesElement.textContent = moves;
-                
-                // Проверяем совпадения
-                setTimeout(() => {
-                    if (!checkMatches()) {
-                        // Если совпадений нет, возвращаем фигуры на место
-                        setTimeout(() => {
-                            swapCells(neighbor, cell);
-                        }, 300);
-                    } else {
-                        // Если ходы закончились, проверяем результат игры
-                        if (moves <= 0) {
-                            setTimeout(checkGameOver, 500);
-                        }
-                    }
-                }, 300);
-            }
-            
-            // Функция обмена ячейками
-            function swapCells(cell1, cell2) {
-                isSwapping = true;
-                
-                // Добавляем класс анимации
-                cell1.classList.add('swapping');
-                cell2.classList.add('swapping');
-                
-                // Получаем координаты ячеек
-                const row1 = parseInt(cell1.dataset.row);
-                const col1 = parseInt(cell1.dataset.col);
-                const row2 = parseInt(cell2.dataset.row);
-                const col2 = parseInt(cell2.dataset.col);
-                
-                // Меняем значения в состоянии доски
-                const temp = boardState[row1][col1];
-                boardState[row1][col1] = boardState[row2][col2];
-                boardState[row2][col2] = temp;
-                
-                // Меняем классы ячеек
-                const gemClass1 = cell1.className.split(' ')[1];
-                const gemClass2 = cell2.className.split(' ')[1];
-                
-                cell1.className = `cell ${gemClass2}`;
-                cell2.className = `cell ${gemClass1}`;
-                
-                // Обновляем данные ячеек
-                cell1.dataset.row = row1;
-                cell1.dataset.col = col1;
-                cell2.dataset.row = row2;
-                cell2.dataset.col = col2;
-                
-                // Убираем класс анимации
-                setTimeout(() => {
-                    cell1.classList.remove('swapping');
-                    cell2.classList.remove('swapping');
-                    isSwapping = false;
-                }, 300);
-            }
-            
-            // Проверка совпадений
-            function checkMatches() {
-                let hasMatches = false;
-                
-                // Проверяем горизонтальные совпадения
-                for (let row = 0; row < BOARD_SIZE; row++) {
-                    for (let col = 0; col < BOARD_SIZE - 2; col++) {
-                        const gemType = boardState[row][col];
-                        if (gemType === boardState[row][col+1] && gemType === boardState[row][col+2]) {
-                            // Найдено совпадение
-                            markMatch(row, col, 0, 1, 3);
-                            hasMatches = true;
-                        }
-                    }
-                }
-                
-                // Проверяем вертикальные совпадения
-                for (let row = 0; row < BOARD_SIZE - 2; row++) {
-                    for (let col = 0; col < BOARD_SIZE; col++) {
-                        const gemType = boardState[row][col];
-                        if (gemType === boardState[row+1][col] && gemType === boardState[row+2][col]) {
-                            // Найдено совпадение
-                            markMatch(row, col, 1, 0, 3);
-                            hasMatches = true;
-                        }
-                    }
-                }
-                
-                // Если есть совпадения, обновляем поле
-                if (hasMatches) {
-                    setTimeout(removeMatches, 300);
-                }
-                
-                return hasMatches;
-            }
-            
-            // Помечаем совпадающие фигуры
-            function markMatch(startRow, startCol, rowStep, colStep, length) {
-                for (let i = 0; i < length; i++) {
-                    const row = startRow + i * rowStep;
-                    const col = startCol + i * colStep;
-                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                    if (cell) {
-                        cell.style.opacity = '0.5';
-                    }
-                }
-            }
-            
-            // Удаление совпадающих фигур и добавление очков
-            function removeMatches() {
-                let cellsToRemove = [];
-                
-                // Собираем все ячейки, которые нужно удалить
-                for (let row = 0; row < BOARD_SIZE; row++) {
-                    for (let col = 0; col < BOARD_SIZE; col++) {
-                        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                        if (cell && cell.style.opacity === '0.5') {
-                            cellsToRemove.push(cell);
-                        }
-                    }
-                }
-                
-                // Удаляем ячейки и добавляем очки
-                if (cellsToRemove.length > 0) {
-                    score += cellsToRemove.length * 10;
-                    scoreElement.textContent = score;
-                    
-                    cellsToRemove.forEach(cell => {
-                        const row = parseInt(cell.dataset.row);
-                        const col = parseInt(cell.dataset.col);
-                        
-                        // Создаем новую фигуру
-                        const newGemType = Math.floor(Math.random() * GEM_TYPES) + 1;
-                        boardState[row][col] = newGemType;
-                        
-                        // Обновляем ячейку
-                        cell.className = `cell gem-${newGemType}`;
-                        cell.style.opacity = '1';
-                    });
-                    
-                    // Проверяем, не появились ли новые совпадения
-                    setTimeout(checkMatches, 300);
-                }
-            }
-            
-            // Проверка окончания игры
-            function checkGameOver() {
-                if (moves <= 0) {
-                    messageElement.textContent = `Игра окончена! Ваш счет: ${score}`;
-                    messageElement.style.display = 'block';
-                }
-            }
-            
-            // Начало игры
-            initGame();
-            
-            // Обработчик кнопки перезапуска
-            restartButton.addEventListener('click', initGame);
-        });
-    </script>
+  </div>
+  <section class="wrap" id="price">
+    <div class="section-head"><h2><span style="color:var(--acid)">/</span> Прайс-лист</h2><p>ВЫБЕРИ СВОЙ ВАРИАНТ</p></div>
+    <div class="grid">
+      <article class="card"><div class="num">01 / BASIC</div><h3>Basic ZXC</h3><p>Минималистичная аватарка с никнеймом и фирменной цветовой гаммой. Обычно не занимает много времени</p><div class="price">от 50 ₽ <small>/ за работу</small></div></article>
+      <article class="card"><div class="num">02 / NORMAL</div><h3>Neon Style</h3><p>Контраст, эффекты и выразительная композиция.</p><div class="price">от 150 ₽ <small>/ за работу</small></div></article>
+      <article class="card"><div class="num">03 / CUSTOM</div><h3>Full Custom</h3><p>самая качевственая работа. При покупке вы первый в очереди. Есть возможность менять тз(техническое задание) в любой момент</p><div class="price">300 ₽ <small>/ за работу</small></div></article>
+    </div>
+  </section>
+  <section class="wrap" id="portfolio">
+    <div class="section-head"><h2><span style="color:var(--acid)">/</span> Работы & отзывы</h2><p>PORTFOLIO / FEEDBACK</p></div>
+    <div class="portfolio">
+      <div class="portfolio-box"><div class="symbol">✳</div><div><strong>Портфолио</strong><p>Посмотри примеры готовых аватарок и выбери направление для своего дизайна.</p><a class="btn" href="https://t.me/ReNights_world" target="_blank" rel="noopener">Открыть канал ↗</a></div></div>
+      <div class="portfolio-box"><div class="symbol">〃</div><div><strong>Отзывы клиентов</strong><p>Реальные отзывы и результаты заказов — в Telegram-канале.</p><a class="btn" href="https://t.me/ReNights_world" target="_blank" rel="noopener">Читать отзывы ↗</a></div></div>
+    </div>
+  </section>
+  <section class="wrap" id="contact">
+    <div class="contact"><div><h2>Готов к новому образу?</h2><p>Напиши мне в Telegram — обсудим идею и детали заказа.</p></div><a class="btn primary" href="https://t.me/ReNightsWorld_bot" target="_blank" rel="noopener">@ReNightsWorld_bot ↗</a></div>
+  </section>
+</main>
+<footer class="wrap footer"><span>© RENIGHTS WORLD</span><span>DARK MODE. YOUR STYLE.</span></footer>
 </body>
 </html>
